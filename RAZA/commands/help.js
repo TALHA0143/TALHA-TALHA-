@@ -1,97 +1,78 @@
+const fs = require("fs-extra");
+const request = require("request");
 
 module.exports.config = {
-    name: "help",
-    version: "2.0.0",
-    hasPermssion: 0,
-    credits: "RDX_ZAIN",
-    description: "Beginner's Guide - Shows all commands with pagination",
-    commandCategory: "system",
-    usages: "[page number] or [command name]",
-    cooldowns: 1,
-    envConfig: {
-        autoUnsend: false,
-        delayUnsend: 60
-    }
+  name: "help",
+  version: "3.0.0",
+  hasPermssion: 0,
+  credits: "Talha ✨",
+  description: "Stylish help menu with DP and royal design",
+  commandCategory: "system",
+  usages: "help [page]",
+  cooldowns: 3
 };
 
-module.exports.languages = {
-    "en": {
-        "moduleInfo": "✥﹤┈┈┈┈┈┈┈┈﹥✥\n╰┈➤ Command: %1\n╰┈➤ Description: %2\n╰┈➤ Usage: %3\n╰┈➤ Category: %4\n╰┈➤ Cooldown: %5s\n╰┈➤ Permission: %6\n╰┈➤ By: %7\n✥﹤┈┈┈┈┈┈┈┈﹥✥",
-        "user": "User",
-        "adminGroup": "Admin Group",
-        "adminBot": "Admin Bot"
-    }
-};
+module.exports.run = async ({ api, event, args }) => {
+  const allCommands = Array.from(global.client.commands.values());
 
-module.exports.run = function ({ api, event, args, getText }) {
-    const { commands } = global.client;
-    const { threadID, messageID } = event;
+  const page = parseInt(args[0]) || 1;
+  const commandsPerPage = 10;
+  const totalPages = Math.ceil(allCommands.length / commandsPerPage);
+  const start = (page - 1) * commandsPerPage;
+  const end = start + commandsPerPage;
 
-    const command = commands.get((args[0] || "").toLowerCase());
-    const threadSetting = global.data.threadData.get(parseInt(threadID)) || {};
-    const prefix = (threadSetting.hasOwnProperty("PREFIX")) ? threadSetting.PREFIX : global.config.PREFIX;
+  if (page < 1 || page > totalPages) {
+    return api.sendMessage(`❌ Page not found. Total pages: ${totalPages}`, event.threadID);
+  }
 
-    // If command name is provided, show command details
-    if (command) {
-        return api.sendMessage(
-            getText(
-                "moduleInfo", 
-                command.config.name, 
-                command.config.description, 
-                `${prefix}${command.config.name} ${(command.config.usages) ? command.config.usages : ""}`, 
-                command.config.commandCategory, 
-                command.config.cooldowns, 
-                ((command.config.hasPermssion == 0) ? getText("user") : (command.config.hasPermssion == 1) ? getText("adminGroup") : getText("adminBot")), 
-                command.config.credits
-            ), 
-            threadID, 
-            messageID
-        );
-    }
+  const pageCommands = allCommands.slice(start, end);
 
-    // Pagination system - 10 commands per page
-    const categories = {};
-    const allCommands = [];
-    
-    for (const [name, value] of commands) {
-        const category = value.config.commandCategory || "Uncategorized";
-        if (!categories[category]) categories[category] = [];
-        categories[category].push(name);
-        allCommands.push({ name, category });
-    }
+  // Commands list in ➥ format
+  const commandInfo = pageCommands
+    .map((cmd) => `├─➥ ${cmd.config.name}`)
+    .join("\n");
 
-    const page = parseInt(args[0]) || 1;
-    const commandsPerPage = 10;
-    const totalPages = Math.ceil(allCommands.length / commandsPerPage);
-    
-    if (page < 1 || page > totalPages) {
-        return api.sendMessage(`Invalid page number! Total pages: ${totalPages}`, threadID, messageID);
-    }
+  // DP URL
+  const imgUrl = ""; // apna DP URL lagao
+  const pathImg = __dirname + "/help.jpg";
 
-    const startIndex = (page - 1) * commandsPerPage;
-    const endIndex = startIndex + commandsPerPage;
-    const pageCommands = allCommands.slice(startIndex, endIndex);
+  const writeImg = () => new Promise((resolve, reject) => {
+    request(encodeURI(imgUrl))
+      .pipe(fs.createWriteStream(pathImg))
+      .on("close", () => resolve())
+      .on("error", (err) => reject(err));
+  });
 
-    let msg = "✥﹤┈┈┈┈┈┈┈┈﹥✥\n";
-    msg += "     COMMAND LIST\n";
-    msg += "✥﹤┈┈┈┈┈┈┈┈﹥✥\n\n";
+  const header = `╔══════✦✿✦═══════╗
+       🄷🄴🄻🄿 🄼🄴🄽🅄
+╚══════✦✿✦═══════╝
 
-    let currentCategory = "";
-    pageCommands.forEach((cmd) => {
-        if (cmd.category !== currentCategory) {
-            if (currentCategory !== "") msg += "\n";
-            msg += `✿ ${cmd.category.toUpperCase()}\n`;
-            currentCategory = cmd.category;
-        }
-        msg += `╰┈➤${cmd.name}\n`;
-    });
+♚ ━━━━━━━━━━━━━━━━━━━ ♛
+    ➢  🅾🆆🅽🅴🆁 🆃🅰🅻🅷🅰 
+♛ ━━━━━━━━━━━━━━━━━━━ ♚
+• ɴᴀᴍᴇ     ➝ ᴠɪᴘ✮𝕜𝕚𝕟𝕘  
+• ᴏᴡɴᴇʀ    ➝ ᴍ ᴛᴀʟʜᴀ (ᴠᴇʀɪғɪᴇᴅ)  
+• ᴜᴘᴛɪᴍᴇ   ➝ ${process.uptime().toFixed(0)}s  
+• ᴅᴀᴛᴇ     ➝ ${new Date().toLocaleDateString()}
 
-    msg += `\n✥﹤┈┈┈┈┈┈┈┈﹥✥\n`;
-    msg += `Page ${page}/${totalPages}\n`;
-    msg += `Total: ${commands.size} commands\n`;
-    msg += `✥﹤┈┈┈┈┈┈┈┈﹥✥\n\n`;
-    msg += `Use ${prefix}help <command> for details\n`;
-    msg += `Use ${prefix}help <page> for next page`;
+✧･ﾟ: *✧･ﾟ:* 🎀 *:･ﾟ✧*:･ﾟ✧
+  🅲🅾🅼🅼🅰🅽🅳 🅻🅸🆂🆃
+✧･ﾟ: *✧･ﾟ:* 🎀 *:･ﾟ✧*:･ﾟ✧`;
 
-    return api.sendMessage(msg, threadID, messageID);
+  const footer = `\n╔════════✦❀✦════════╗
+   🄻🄾🅅🄴 🄵🅁🄾🄼 🄾🅆🄽🄴🅁
+╚════════✦❀✦════════╝
+✨ ᴛʜɪs ʙᴏᴛ ɪs ᴍᴀᴅᴇ ᴡɪᴛʜ ʟᴏᴠᴇ
+🌹 sᴘʀᴇᴀᴅ ʟᴏᴠᴇ ᴇᴠᴇʀʏᴡʜᴇʀᴇ
+📌 ᴘᴀɢᴇ ${page}/${totalPages}`;
+
+  try {
+    await writeImg();
+    api.sendMessage({
+      body: `${header}\n\n${commandInfo}\n${footer}`,
+      attachment: fs.createReadStream(pathImg)
+    }, event.threadID, () => fs.unlinkSync(pathImg), event.messageID);
+  } catch (error) {
+    api.sendMessage(`${header}\n\n${commandInfo}\n${footer}`, event.threadID, event.messageID);
+  }
 };
