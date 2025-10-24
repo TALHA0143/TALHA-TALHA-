@@ -1,122 +1,113 @@
+const axios = require("axios");
+const fs = require('fs')
+const baseApiUrl = async () => {
+  const base = await axios.get(
+`https://raw.githubusercontent.com/cyber-ullash/cyber-ullash/refs/heads/main/UllashApi.json`,
+  );
+  return base.data.api;
+};
 module.exports.config = {
     name: "song",
-    version: "1.0.0",
+    version: "2.1.0",
+    aliases: [ "music", "play"],
+    credits: "dipto",
+    countDown: 5,
     hasPermssion: 0,
-    credits: "Kashif Raza",
-    description: "Search and download music from YouTube",
+    description: "Download audio from YouTube",
     commandCategory: "media",
-    usages: "[song name]",
-    cooldowns: 10
-};
-
-module.exports.run = async ({ api, event, args }) => {
-    const axios = require('axios');
-    const fs = require('fs-extra');
-    const { threadID, messageID } = event;
-    
+    usages: "{pn} [<song name>|<song link>]:"+ "\n   Example:"+"\n{pn} chipi chipi chapa chapa"
+  }
+  module.exports.run = async ({api,args, event,commandName, message }) =>{
+    const checkurl = /^(?:https?:\/\/)?(?:m\.|www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))((\w|-){11})(?:\S+)?$/;
+    let videoID;
+    const urlYtb = checkurl.test(args[0]);
+     
+if (urlYtb) {
+  const match = args[0].match(checkurl);
+  videoID = match ? match[1] : null;
+        const { data: { title, downloadLink } } = await axios.get(
+          `${await baseApiUrl()}/ytDl3?link=${videoID}&format=mp3`
+        );
+    return  api.sendMessage({
+      body: title,
+      attachment: await dipto(downloadLink,'audio.mp3')
+    },event.threadID,()=>fs.unlinkSync('audio.mp3'),event.messageID)
+}
+    let keyWord = args.join(" ");
+    keyWord = keyWord.includes("?feature=share") ? keyWord.replace("?feature=share", "") : keyWord;
+    const maxResults = 6;
+    let result;
     try {
-        const query = args.join(" ");
-        
-        if (!query) {
-            return api.sendMessage("Please provide a song name!\n\nExample: /music Saiyaara", threadID, messageID);
-        }
-
-        // Send searching message
-        const searchMsg = await api.sendMessage("🔍 Searching for: " + query + "\nPlease wait...", threadID);
-
-        // Define the 6 animation steps (limited to 6 edits due to Messenger restrictions)
-        const progressBarLength = 20; // Length of the progress bar
-        const animationSteps = [
-            { message: "🔍 Searching...", progress: 10, delay: 1000 },
-            { message: "🎵 Song found!", progress: 30, delay: 1000 },
-            { message: "🎵 Downloading...", progress: 50, delay: 1500 },
-            { message: "🎵 Processing...", progress: 70, delay: 1500 },
-            { message: "🎵 Finalizing...", progress: 90, delay: 1000 },
-            { message: "🎵 Complete! ✅", progress: 100, delay: 500 }
-        ];
-
-        // Function to update progress bar
-        const updateProgress = async (step) => {
-            const filled = Math.round((step.progress / 100) * progressBarLength);
-            const empty = progressBarLength - filled;
-            const progressBar = "█".repeat(filled) + "░".repeat(empty);
-            const message = `${step.message}\n\n${progressBar} ${step.progress}%`;
-            await api.editMessage(message, searchMsg.messageID);
-        };
-
-        // Search for the song
-        api.setMessageReaction("⌛", event.messageID, () => {}, true);
-        await updateProgress(animationSteps[0]); // Edit 1: Searching (10%)
-        const searchUrl = `https://apis-keith.vercel.app/search/yts?query=${encodeURIComponent(query)}`;
-        const searchResponse = await axios.get(searchUrl);
-        await new Promise(resolve => setTimeout(resolve, animationSteps[0].delay));
-
-        if (!searchResponse.data.status || !searchResponse.data.result || searchResponse.data.result.length === 0) {
-            api.setMessageReaction("❌", event.messageID, () => {}, true);
-            api.unsendMessage(searchMsg.messageID);
-            return api.sendMessage("No results found for your search!", threadID, messageID);
-        }
-
-        const firstResult = searchResponse.data.result[0];
-        
-        // Song found
-        await updateProgress(animationSteps[1]); // Edit 2: Song found (30%)
-        await new Promise(resolve => setTimeout(resolve, animationSteps[1].delay));
-
-        // Downloading
-        await updateProgress(animationSteps[2]); // Edit 3: Downloading (50%)
-        const downloadStartTime = Date.now();
-        const downloadUrl = `https://apis-keith.vercel.app/download/audio?url=${encodeURIComponent(firstResult.url)}`;
-        const downloadResponse = await axios.get(downloadUrl);
-
-        if (!downloadResponse.data.status || !downloadResponse.data.result) {
-            api.setMessageReaction("❌", event.messageID, () => {}, true);
-            api.unsendMessage(searchMsg.messageID);
-            return api.sendMessage("Failed to download the audio!", threadID, messageID);
-        }
-
-        const audioUrl = downloadResponse.data.result;
-        const filePath = __dirname + `/cache/music_${Date.now()}.mp3`;
-
-        // Adjust delay to match download time
-        const downloadTime = Date.now() - downloadStartTime;
-        const remainingDelay = Math.max(0, animationSteps[2].delay - downloadTime);
-        await new Promise(resolve => setTimeout(resolve, remainingDelay));
-
-        // Processing
-        await updateProgress(animationSteps[3]); // Edit 4: Processing (70%)
-        const audioData = await axios.get(audioUrl, { responseType: 'arraybuffer' });
-        fs.writeFileSync(filePath, Buffer.from(audioData.data));
-        await new Promise(resolve => setTimeout(resolve, animationSteps[3].delay));
-
-        // Finalizing
-        await updateProgress(animationSteps[4]); // Edit 5: Finalizing (90%)
-        await new Promise(resolve => setTimeout(resolve, animationSteps[4].delay));
-
-        // Complete
-        await updateProgress(animationSteps[5]); // Edit 6: Complete (100%)
-        api.setMessageReaction("✅", event.messageID, () => {}, true);
-
-        // Send the audio file
-        await new Promise(resolve => setTimeout(resolve, animationSteps[5].delay));
-        await api.sendMessage({
-            body: firstResult.title + "\nDuration: " + firstResult.duration + "\nViews: " + parseInt(firstResult.views).toLocaleString() + "\nPublished: " + firstResult.published,
-            attachment: fs.createReadStream(filePath)
-        }, threadID, messageID);
-        
-        // Delete file and unsend progress message after sending
-        setTimeout(() => {
-            try {
-                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-                api.unsendMessage(searchMsg.messageID);
-            } catch (cleanupError) {
-                console.log("Cleanup error:", cleanupError);
-            }
-        }, 3000);
-
-    } catch (error) {
-        console.error(error);
-        api.setMessageReaction("❌", event.messageID, () => {}, true);
-        return api.sendMessage("Error: " + error.message + "\n\nPlease try again later!", threadID, messageID);
+      result = ((await axios.get(`${await baseApiUrl()}/ytFullSearch?songName=${keyWord}`)).data).slice(0, maxResults);
+    } catch (err) {
+      return api.sendMessage("❌ An error occurred:"+err.message,event.threadID,event.messageID);
     }
-};
+    if (result.length == 0)
+      return api.sendMessage("⭕ No search results match the keyword:"+ keyWord,event.threadID,event.messageID);
+    let msg = "";
+    let i = 1;
+    const thumbnails = [];
+    for (const info of result) {
+thumbnails.push(diptoSt(info.thumbnail,'photo.jpg'));
+      msg += `${i++}. ${info.title}\nTime: ${info.time}\nChannel: ${info.channel.name}\n\n`;
+    }
+    api.sendMessage({
+      body: msg+ "Reply to this message with a number want to listen",
+      attachment: await Promise.all(thumbnails)
+    },event.threadID, (err, info) => {
+global.client.handleReply.push({
+        name: this.config.name,
+        messageID: info.messageID,
+        author: event.senderID,
+        result
+      });
+    },event.messageID);
+  }
+ module.exports.handleReply = async ({ event, api, handleReply }) => {
+    try {
+    const { result } = handleReply;
+    const choice = parseInt(event.body);
+    if (!isNaN(choice) && choice <= result.length && choice > 0) {
+      const infoChoice = result[choice - 1];
+      const idvideo = infoChoice.id;
+  const { data: { title, downloadLink ,quality} } = await axios.get(`${await baseApiUrl()}/ytDl3?link=${idvideo}&format=mp3`);
+    await api.unsendMessage(handleReply.messageID)
+        await  api.sendMessage({
+          body: `• Title: ${title}\n• Quality: ${quality}`,
+          attachment: await dipto(downloadLink,'audio.mp3')
+        },event.threadID ,
+       ()=>fs.unlinkSync('audio.mp3')
+      ,event.messageID)
+    } else {
+      api.sendMessage("Invalid choice. Please enter a number between 1 and 6.",event.threadID,event.messageID);
+    }
+    } catch (error) {
+      console.log(error);
+      api.sendMessage("⭕ Sorry, audio size was less than 26MB",event.threadID,event.messageID)
+    }   
+ };
+async function dipto(url,pathName) {
+  try {
+    const response = (await axios.get(url,{
+      responseType: "arraybuffer"
+    })).data;
+ 
+    fs.writeFileSync(pathName, Buffer.from(response));
+    return fs.createReadStream(pathName);
+  }
+  catch (err) {
+    throw err;
+  }
+}
+async function diptoSt(url,pathName) {
+  try {
+    const response = await axios.get(url,{
+      responseType: "stream"
+    });
+    response.data.path = pathName;
+    return response.data;
+  }
+  catch (err) {
+    throw err;
+  }
+}
