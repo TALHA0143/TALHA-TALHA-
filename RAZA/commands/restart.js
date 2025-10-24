@@ -1,68 +1,36 @@
-const { formatMessage } = require('../../utils/formatter');
-
 module.exports.config = {
-	name: "restart",
-	version: "1.0.0",
-	hasPermssion: 2,
-	credits: "Kashif Raza",
-	description: "Restart Bot",
-	commandCategory: "system",
-	usages: "",
-	cooldowns: 5
+  name: "restart",
+  version: "1.0.1",
+  hasPermssion: 2,
+  credits: "💌 M TALHA",
+  description: "Restart the bot in a stylish way",
+  commandCategory: "System",
+  usages: "",
+  cooldowns: 5
 };
 
-module.exports.run = async ({ api, event, args }) => {
-	const { threadID, messageID } = event;
-	return api.sendMessage(formatMessage(`${global.config.BOTNAME} Bot are now Restarting...`), threadID, () => process.exit(1));
-}
-module.exports.config = {
-    name: "restart",
-    version: "1.0.0",
-    hasPermssion: 2,
-    credits: "Flash Bot",
-    description: "Restart bot without server crash",
-    commandCategory: "system",
-    usages: "",
-    cooldowns: 5
-};
+module.exports.run = async ({ api, event }) => {
+  const { threadID } = event;
+  const botName = global.config.BOTNAME || "⚡ 𝙈𝙔 𝘽𝙊𝙏 ⚡";
 
-module.exports.run = async function({ api, event }) {
-    const { threadID, messageID } = event;
-    
-    try {
-        await api.sendMessage("⚡ Restarting bot...", threadID, messageID);
-        
-        // Clear command cache
-        const commandsPath = require('path').join(__dirname);
-        Object.keys(require.cache).forEach(key => {
-            if (key.includes(commandsPath)) {
-                delete require.cache[key];
-            }
-        });
-        
-        // Reload commands
-        const fs = require('fs');
-        const commands = new Map();
-        
-        fs.readdirSync(commandsPath).forEach(file => {
-            if (file.endsWith('.js')) {
-                try {
-                    delete require.cache[require.resolve(`./${file}`)];
-                    const command = require(`./${file}`);
-                    if (command.config) {
-                        commands.set(command.config.name, command);
-                    }
-                } catch (err) {
-                    console.error(`Failed to load ${file}:`, err);
-                }
-            }
-        });
-        
-        global.client.commands = commands;
-        
-        await api.sendMessage(`✅ Bot restarted successfully!\n\n📊 Loaded ${commands.size} commands`, threadID, messageID);
-        
-    } catch (error) {
-        await api.sendMessage(`❌ Restart failed: ${error.message}`, threadID, messageID);
-    }
+  const message = `
+╭━━━◆🔁◆━━━╮
+  𝗥𝗘𝗕𝗢𝗢𝗧 𝗣𝗥𝗢𝗖𝗘𝗦𝗦
+╰━━━◆🔁◆━━━╯
+
+⚙️ | 𝗦𝘆𝘀𝘁𝗲𝗺: ${botName}  
+💫 | 𝗦𝘁𝗮𝘁𝘂𝘀: 𝗥𝗲𝘀𝘁𝗮𝗿𝘁𝗶𝗻𝗴...  
+🕐 | 𝗧𝗶𝗺𝗲: ${new Date().toLocaleTimeString()}  
+💭 | “𝘎𝘪𝘷𝘪𝘯𝘨 𝘮𝘺 𝘤𝘪𝘳𝘤𝘶𝘪𝘵𝘴 𝘢 𝘴𝘩𝘰𝘳𝘵 𝘯𝘢𝘱 😴”
+
+━━━━━━━━━━━━━━━━━━━
+👑 𝗢𝘄𝗻𝗲𝗿: 𝗠 𝗧𝗔𝗟𝗛𝗔  
+🌐 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸: facebook.com/100065216344877
+━━━━━━━━━━━━━━━━━━━
+
+💥 𝗣𝗹𝗲𝗮𝘀𝗲 𝘄𝗮𝗶𝘁...  
+𝗜’𝗹𝗹 𝗿𝗲𝗯𝗼𝗼𝘁 𝗶𝗻 𝗮 𝗳𝗲𝘄 𝘀𝗲𝗰𝗼𝗻𝗱𝘀 🚀
+`;
+
+  api.sendMessage(message, threadID, () => process.exit(1));
 };
