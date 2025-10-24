@@ -8,7 +8,7 @@ module.exports.config = {
     name: "autotiktok",
     version: "1.0.0",
     hasPermssion: 0,
-    credits: "Kashif Raza",
+    credits: "Talha",
     description: "Automatically download TikTok video when a URL is sent (no prefix required)",
     commandCategory: "For user",
     usages: "Send a TikTok URL directly",
