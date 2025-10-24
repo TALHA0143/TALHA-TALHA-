@@ -1,47 +1,154 @@
-const { formatMessage } = require('../../utils/formatter');
+module.exports.config = {  
+  name: "pair2",  
+  version: "1.0.0",  
+  hasPermssion: 0,  
+  credits: "Talha Pathan",  
+  description: "Pair love 💘 (v2)",  
+  commandCategory: "For users",  
+  cooldowns: 5,  
+  dependencies: {  
+    "axios": "",  
+    "fs-extra": "",  
+    "jimp": ""  
+  }  
+};  
 
-module.exports.config = {
-  name: "pair2",
-  version: "1.0.0", 
-  hasPermssion: 0,
-  credits: "Kashif Raza",
-  description: "Ghep doi ngau nhien",
-  commandCategory: "random-img", 
-  usages: "", 
-  cooldowns: 0,
+async function makeImage({ one, two }) {  
+  const fs = global.nodemodule["fs-extra"];  
+  const path = global.nodemodule["path"];  
+  const axios = global.nodemodule["axios"];  
+  const jimp = global.nodemodule["jimp"];  
+  const __root = path.resolve(__dirname, "cache", "canvas");  
+
+  if (!fs.existsSync(__root)) fs.mkdirSync(__root, { recursive: true });  
+
+  // 👉 Template (background) image
+  const pairingImgUrl = "https://i.ibb.co/S4YTSFqL/20250820-081338.jpg";  
+  const baseImagePath = path.join(__root, "pairing_temp.png");  
+
+  try {  
+    const baseImageBuffer = (await axios.get(pairingImgUrl, { responseType: 'arraybuffer' })).data;  
+    fs.writeFileSync(baseImagePath, Buffer.from(baseImageBuffer, 'binary'));  
+  } catch (error) {  
+    console.error("Error downloading base image:", error.message);  
+    throw new Error("Base image download nahi ho payi ❌");  
+  }  
+
+  let pairing_img = await jimp.read(baseImagePath);  
+  let pathImg = path.join(__root, `pairing${one}${two}.png`);  
+  let avatarOne = path.join(__root, `avt${one}.png`);  
+  let avatarTwo = path.join(__root, `avt${two}.png`);  
+
+  // 👉 Avatar download
+  const downloadAvatar = async (id, filePath) => {  
+    try {  
+      let buffer = (await axios.get(  
+        `https://graph.facebook.com/${id}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`,  
+        { responseType: 'arraybuffer' }  
+      )).data;  
+      fs.writeFileSync(filePath, Buffer.from(buffer, 'binary'));  
+    } catch (error) {  
+      console.error(`Avatar download error (user ${id}):`, error.message);  
+      throw new Error(`Avatar ${id} ka download fail ❌`);  
+    }  
+  };  
+
+  await downloadAvatar(one, avatarOne);  
+  await downloadAvatar(two, avatarTwo);  
+
+  let circleOne = await jimp.read(await circle(avatarOne));  
+  let circleTwo = await jimp.read(await circle(avatarTwo));  
+
+  // 🔥 Fixed size & position (sample DP placement)
+  pairing_img  
+    .composite(circleOne.resize(154, 154), 43, 114)  // Left side  
+    .composite(circleTwo.resize(154, 154), 430, 115); // Right side  
+
+  let raw = await pairing_img.getBufferAsync("image/png");  
+  fs.writeFileSync(pathImg, raw);  
+
+  fs.unlinkSync(avatarOne);  
+  fs.unlinkSync(avatarTwo);  
+  fs.unlinkSync(baseImagePath);  
+
+  return pathImg;  
+}  
+
+async function circle(image) {  
+  const jimp = require("jimp");  
+  image = await jimp.read(image);  
+  image.circle();  
+  return await image.getBufferAsync("image/png");  
+}  
+
+module.exports.run = async function ({ api, event }) {  
+  const { threadID, messageID, senderID } = event;  
+  const fs = require("fs-extra");  
+
+  const tl = ['21%', '11%', '55%', '89%', '22%', '45%', '1%', '4%', '78%', '15%', '91%', '77%', '41%', '32%', '67%', '19%', '37%', '17%', '96%', '52%', '62%', '76%', '83%', '100%', '99%', "0%", "48%"];  
+  const tle = tl[Math.floor(Math.random() * tl.length)];  
+
+  try {  
+    const userInfo = await api.getUserInfo(senderID);  
+    const namee = userInfo[senderID].name;  
+    const senderGender = userInfo[senderID].gender;  
+
+    const threadInfo = await api.getThreadInfo(threadID);  
+    let participantIDs = threadInfo.participantIDs.filter(id => id !== senderID);  
+
+    if (participantIDs.length === 0) {  
+      return api.sendMessage("Group me aur koi member hi nahi mila pairing ke liye 🤷‍♂️", threadID, messageID);  
+    }  
+
+    const participantsInfo = await api.getUserInfo(participantIDs);  
+
+    let oppositeGenderIDs = [];  
+    if (senderGender === 2) {  
+      oppositeGenderIDs = participantIDs.filter(id => participantsInfo[id]?.gender === 1);  
+    } else if (senderGender === 1) {  
+      oppositeGenderIDs = participantIDs.filter(id => participantsInfo[id]?.gender === 2);  
+    } else {  
+      oppositeGenderIDs = participantIDs;  
+    }  
+
+    let randomID;  
+    if (oppositeGenderIDs.length > 0) {  
+      randomID = oppositeGenderIDs[Math.floor(Math.random() * oppositeGenderIDs.length)];  
+    } else {  
+      randomID = participantIDs[Math.floor(Math.random() * participantIDs.length)];  
+    }  
+
+    const partnerInfo = await api.getUserInfo(randomID);  
+    const name = partnerInfo[randomID].name;  
+
+    const arraytag = [  
+      { id: senderID, tag: namee },  
+      { id: randomID, tag: name }  
+    ];  
+
+    const one = senderID, two = randomID;  
+
+    return makeImage({ one, two }).then(path =>  
+      api.sendMessage({  
+        body: `‎𝐎𝐰𝐧𝐞𝐫 ➻ 🌹 𝐓𝐚𝐥𝐡𝐚 𝐏𝐚𝐭𝐡𝐚𝐧 🌹  
+
+⎯ⷨ͢⟵͇̽💞✨ 𝐓𝐞𝐫𝐢 𝐚𝐧𝐤𝐡𝐨 𝐦𝐞 𝐣𝐨 𝐩𝐲𝐚𝐫 𝐝𝐞𝐤𝐡𝐚 ..  
+𝐮𝐬𝐢 𝐬𝐞 𝐡𝐮𝐦𝐚𝐫𝐢 𝐝𝐮𝐧𝐢𝐲𝐚 𝐛𝐚𝐧 𝐠𝐚𝐲𝐢 ..  
+𝐡𝐚𝐫 𝐝𝐢𝐧 𝐬𝐢𝐫𝐟 𝐞𝐤 𝐚𝐫𝐳𝐮 𝐡𝐚𝐢 ..  
+𝐳𝐢𝐧𝐝𝐚𝐠𝐢 𝐛𝐚𝐬 𝐭𝐞𝐫𝐞 𝐬𝐚𝐚𝐭𝐡 𝐬𝐮𝐡𝐚𝐧𝐢 𝐛𝐚𝐧 𝐣𝐚𝐲𝐞 .. 💕  
+
+➻ 𝐍𝗔ɱɘ ✦ ${namee} 
+
+➻ 𝐍𝗔ɱɘ ✦ ${name}  
+
+🌸🍁 The odds are: 〘${tle}%〙`,  
+        mentions: arraytag,  
+        attachment: fs.createReadStream(path)  
+      }, threadID, () => fs.unlinkSync(path), messageID)  
+    );  
+
+  } catch (error) {  
+    console.error("Pair2 command error:", error.message);  
+    return api.sendMessage("Error aaya pairing me ❌ Baad me try karo!", threadID, messageID);  
+  }  
 };
-module.exports.run = async function({ api, event, args, Users, Threads, Currencies }) {
-        const axios = global.nodemodule["axios"];
-        const fs = global.nodemodule["fs-extra"];
-        var data = await Currencies.getData(event.senderID);
-        var money = data.money
-        if(money < 500) api.sendMessage(formatMessage("You need 500 USD for 1 pairing, please use ${global.config.PREFIX}work to received money or ask for admin bot!\n🤑Theres something new to eat🤑"),event.threadID,event.messageID)
-        else {
-        var tl = ['21%', '67%', '19%', '37%', '17%', '96%', '52%', '62%', '76%', '83%', '100%', '99%', "0%", "48%"];
-        var tle = tl[Math.floor(Math.random() * tl.length)];
-        let dataa = await api.getUserInfo(event.senderID);
-        let namee = await dataa[event.senderID].name
-        let loz = await api.getThreadInfo(event.threadID);
-        var emoji = loz.participantIDs;
-        var id = emoji[Math.floor(Math.random() * emoji.length)];
-        let data = await api.getUserInfo(id);
-        let name = await data[id].name
-        var arraytag = [];
-                arraytag.push({id: event.senderID, tag: namee});
-                arraytag.push({id: id, tag: name});
-        api.changeNickname(`😘👉🔐🔐 ${name} Property 🔐🔐👈😘`, event.threadID, event.senderID);
-        api.changeNickname(`😘👉🔐🔐 ${namee} Property🔐🔐👈😘`, event.threadID, id);
-        var sex = await data[id].gender;
-        var gender = sex == 2 ? "Male🧑" : sex == 1 ? "Female👩‍🦰" : "Trần Đức Bo";
-        Currencies.setData(event.senderID, options = {money: money - 500})
-        let Avatar = (await axios.get( `https://graph.facebook.com/${id}/picture?height=720&width=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, { responseType: "arraybuffer" } )).data;
-            fs.writeFileSync( __dirname + "/cache/avt.png", Buffer.from(Avatar, "utf-8") );
-        let Avatar2 = (await axios.get( `https://graph.facebook.com/${event.senderID}/picture?height=720&width=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`, { responseType: "arraybuffer" } )).data;
-            fs.writeFileSync( __dirname + "/cache/avt2.png", Buffer.from(Avatar2, "utf-8") );
-        var imglove = [];
-              imglove.push(fs.createReadStream(__dirname + "/cache/avt.png"));
-              imglove.push(fs.createReadStream(__dirname + "/cache/avt2.png"));
-        var msg = {body: `Complete the pairing bar you lost 500 dollars!\your partner is of the same gender: ${gender}\nDual ratio: ${tle}\n`+namee+" "+"❤️"+" "+name, mentions: arraytag, attachment: imglove}
-        return api.sendMessage(msg, event.threadID, event.messageID)
-      }
-  }
