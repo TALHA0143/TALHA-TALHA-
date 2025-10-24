@@ -1,20 +1,20 @@
 module.exports.config = {
   name: "prefix",
-  version: "1.0.0",
+  version: "1.1.0",
   hasPermssion: 0,
-  credits: "𝐏𝐫𝐢𝐲𝐚𝐧𝐬𝐡 𝐑𝐚𝐣𝐩𝐮𝐭",
-  description: "Shows bot prefix info",
+  credits: "💌 M TALHA",
+  description: "Display bot prefix and owner info in stylish format",
   commandCategory: "Admin",
   usages: "",
   cooldowns: 5,
 };
 
 module.exports.handleEvent = async ({ event, api, Threads }) => {
-  const { threadID, messageID, body, senderID } = event;
+  const { threadID, messageID, body } = event;
 
-  // Credits check
-  if (this.config.credits !== "𝐏𝐫𝐢𝐲𝐚𝐧𝐬𝐡 𝐑𝐚𝐣𝐩𝐮𝐭") {
-    return api.sendMessage(`Again change credit to 𝐏𝐫𝐢𝐲𝐚𝐧𝐬𝐡 𝐑𝐚𝐣𝐩𝐮𝐭`, threadID, messageID);
+  // Credits protection
+  if (this.config.credits !== "💌 M TALHA") {
+    return api.sendMessage(`⚠️ Credit change detected! Please restore credits to 💌 M TALHA`, threadID, messageID);
   }
 
   function send(msg) {
@@ -27,47 +27,62 @@ module.exports.handleEvent = async ({ event, api, Threads }) => {
   const prefix = threadSetting.PREFIX || global.config.PREFIX;
 
   const keywords = [
-    "mpre", "mprefix", "prefix", "dấu lệnh", "prefix của bot là gì", "daulenh",
-    "duong", "what prefix", "freefix", "what is the prefix", "bot dead",
-    "bots dead", "where prefix", "what is bot", "what prefix bot", "how to use bot",
-    "how use bot", "where are the bots", "bot not working", "bot is offline",
-    "prefx", "prfix", "prifx", "perfix", "bot not talking", "where is bot"
+    "prefix", "mprefix", "bot prefix", "daulenh", "what prefix", "bot dead",
+    "bot offline", "where prefix", "how to use bot", "perfix", "prfix", "prefx"
   ];
 
   for (let keyword of keywords) {
     const str = keyword.charAt(0).toUpperCase() + keyword.slice(1);
     if (body === keyword || body === keyword.toUpperCase() || body === str) {
       return send(
-` ╔════ ❀.•🎀•.❀ ════╗
-         𝐁𝐎𝐓 𝐏𝐑𝐄𝐅𝐈𝐗
- ╚════ ❀.•🎀•.❀ ════╝
+`╭━━━⟢🔮⟣━━━╮
+     ⚡ 𝙎𝙔𝙎𝙏𝙀𝙈 𝙎𝙏𝘼𝙏𝙐𝙎 ⚡
+╰━━━⟢🔮⟣━━━╯
 
-🔹 𝗣𝗥𝗘𝗙𝗜𝗫: [ ${prefix} ]
-🔹 𝗢𝗪𝗡𝗘𝗥: 𝑻𝒂𝒍𝒉𝒂 𝑷𝒂𝒕𝒉𝒂𝒏
-🔹 𝗢𝗙𝗙𝗜𝗖𝗜𝗔𝗟 𝗙𝗕: https://www.facebook.com/share/193GypVyJQ/
+┏━━━━━━━━━━━━━━┓
+🔹 𝗕𝗢𝗧 𝗣𝗥𝗘𝗙𝗜𝗫: [ ${prefix} ]
+🔹 𝗢𝗪𝗡𝗘𝗥: 𝗠 𝗧𝗔𝗟𝗛𝗔
+🔹 𝗙𝗔𝗖𝗘𝗕𝗢𝗢𝗞: facebook.com/share/193GypVyJQ
+┗━━━━━━━━━━━━━━┛
 
-💙 𝑻𝒉𝒂𝒏𝒌 𝒚𝒐𝒖 𝒇𝒐𝒓 𝒖𝒔𝒊𝒏𝒈 𝒎𝒚 𝒃𝒐𝒕!
-🕊️ 𝑺𝒕𝒂𝒚 𝒄𝒐𝒐𝒍 𝒂𝒏𝒅 𝒔𝒑𝒓𝒆𝒂𝒅 𝒍𝒐𝒗𝒆 💫`
+✨ 𝗦𝘆𝘀𝘁𝗲𝗺 𝗜𝗡𝗙𝗢:
+   ⚙️ 𝗠𝗼𝗱𝗲: 𝗔𝘂𝘁𝗼 𝗥𝗲𝘀𝗽𝗼𝗻𝘀𝗲  
+   💡 𝗦𝘁𝗮𝘁𝘂𝘀: 𝗔𝗰𝘁𝗶𝘃𝗲 𝗮𝗻𝗱 𝗢𝗻𝗹𝗶𝗻𝗲  
+   🧠 𝗜𝗻𝘁𝗲𝗹𝗹𝗶𝗴𝗲𝗻𝗰𝗲: 𝘼𝙞 𝙅𝙖𝙫𝙖 𝙇𝙤𝙜𝙞𝙘  
+
+━━━━━━━━━━━━━━━━━━━
+💙 𝗧𝗵𝗮𝗻𝗸𝘀 𝗳𝗼𝗿 𝘂𝘀𝗶𝗻𝗴 𝗠 𝗧𝗔𝗟𝗛𝗔 𝗕𝗢𝗧  
+🚀 𝗦𝘁𝗮𝘆 𝗦𝗺𝗮𝗿𝘁 • 𝗦𝘁𝗮𝘆 𝗦𝗮𝗳𝗲 • 𝗦𝗽𝗿𝗲𝗮𝗱 𝗟𝗼𝘃𝗲 💫
+━━━━━━━━━━━━━━━━━━━`
       );
     }
   }
 };
 
 module.exports.run = async ({ event, api, Threads }) => {
-  const threadID = event.threadID;
+  const { threadID } = event;
   const threadSetting = global.data.threadData.get(parseInt(threadID)) || {};
   const prefix = threadSetting.PREFIX || global.config.PREFIX;
 
   return api.sendMessage(
-` ╔════ ❀.•🎀•.❀ ════╗
-         𝐁𝐎𝐓 𝐏𝐑𝐄𝐅𝐈𝐗
- ╚════ ❀.•🎀•.❀ ════╝
+`╭━━━⟢🔮⟣━━━╮
+     ⚡ 𝙎𝙔𝙎𝙏𝙀𝙈 𝙎𝙏𝘼𝙏𝙐𝙎 ⚡
+╰━━━⟢🔮⟣━━━╯
 
-🔹 𝗣𝗥𝗘𝗙𝗜𝗫: [ ${prefix} ]
-🔹 𝗢𝗪𝗡𝗘𝗥: 𝑻𝒂𝒍𝒉𝒂 𝑷𝒂𝒕𝒉𝒂𝒏
-🔹 𝗢𝗙𝗙𝗜𝗖𝗜𝗔𝗟 𝗙𝗕: https://www.facebook.com/share/193GypVyJQ/
+┏━━━━━━━━━━━━━━┓
+🔹 𝗕𝗢𝗧 𝗣𝗥𝗘𝗙𝗜𝗫: [ ${prefix} ]
+🔹 𝗢𝗪𝗡𝗘𝗥: 𝗠 𝗧𝗔𝗟𝗛𝗔
+🔹 𝗙𝗔𝗖𝗘𝗕𝗢𝗢𝗞: facebook.com/share/193GypVyJQ
+┗━━━━━━━━━━━━━━┛
 
-💙 𝑻𝒉𝒂𝒏𝒌 𝒚𝒐𝒖 𝒇𝒐𝒓 𝒖𝒔𝒊𝒏𝒈 𝒎𝒚 𝒃𝒐𝒕!
-🕊️ 𝑺𝒕𝒂𝒚 𝒄𝒐𝒐𝒍 𝒂𝒏𝒅 𝒔𝒑𝒓𝒆𝒂𝒅 𝒍𝒐𝒗𝒆 💫`, threadID
+✨ 𝗦𝘆𝘀𝘁𝗲𝗺 𝗜𝗡𝗙𝗢:
+   ⚙️ 𝗠𝗼𝗱𝗲: 𝗔𝘂𝘁𝗼 𝗥𝗲𝘀𝗽𝗼𝗻𝘀𝗲  
+   💡 𝗦𝘁𝗮𝘁𝘂𝘀: 𝗔𝗰𝘁𝗶𝘃𝗲 𝗮𝗻𝗱 𝗢𝗻𝗹𝗶𝗻𝗲  
+   🧠 𝗜𝗻𝘁𝗲𝗹𝗹𝗶𝗴𝗲𝗻𝗰𝗲: 𝘼𝙞 𝙅𝙖𝙫𝙖 𝙇𝙤𝙜𝙞𝙘  
+
+━━━━━━━━━━━━━━━━━━━
+💙 𝗧𝗵𝗮𝗻𝗸𝘀 𝗳𝗼𝗿 𝘂𝘀𝗶𝗻𝗴 𝗠 𝗧𝗔𝗟𝗛𝗔 𝗕𝗢𝗧  
+🚀 𝗦𝘁𝗮𝘆 𝗦𝗺𝗮𝗿𝘁 • 𝗦𝘁𝗮𝘆 𝗦𝗮𝗳𝗲 • 𝗦𝗽𝗿𝗲𝗮𝗱 𝗟𝗼𝘃𝗲 💫
+━━━━━━━━━━━━━━━━━━━`, threadID
   );
 };
