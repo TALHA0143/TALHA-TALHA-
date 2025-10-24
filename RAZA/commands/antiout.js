@@ -3,7 +3,7 @@ const { formatMessage } = require('../../utils/formatter');
 module.exports.config = {
     name: "antiout",
     version: "1.0.0",
-    credits: "Kashif Raza",
+    credits: "Talha",
     hasPermssion: 1,
     description: "Turn off antiout",
     usages: "antiout on/off",
