@@ -4,7 +4,7 @@ module.exports.config = {
  name: "antijoin",
  eventType: ["log:subscribe"],
  version: "1.0.0",
- credits: "Kashif Raza",
+ credits: "Talha",
  description: "Ban new members from the group"
 };
 
