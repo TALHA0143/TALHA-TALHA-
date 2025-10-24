@@ -4,7 +4,7 @@ module.exports.config = {
   name: "autostickerBotReply",
   version: "1.0.0",
   hasPermssion: 0,
-  credits: "Kashif Raza",
+  credits: "Talha",
   description: "Auto sticker reply when someone says 'bot'",
   commandCategory: "auto",
   usages: "No prefix needed",
@@ -54,3 +54,4 @@ module.exports.handleEvent = async function ({ api, event }) {
 };
 
 module.exports.run = () => {};
+
