@@ -3,7 +3,7 @@ const { formatMessage } = require('../../utils/formatter');
 module.exports.config = {
   name: 'allbox',
   version: '1.0.0',
-  credits: "Kashif Raza",
+  credits: "Talha",
   hasPermssion: 2,
   description: '[Ban/Unban/Del/Remove] List[Data] thread The bot has joined in.',
   commandCategory: 'Admin',
