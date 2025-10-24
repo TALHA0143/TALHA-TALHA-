@@ -4,7 +4,7 @@ module.exports.config = {
   name: "avt",
   version: "1.0.0",
   hasPermssion: 0,
-  credits: "Kashif Raza",
+  credits: "Talha",
   description: "get avt id by people using it",
   commandCategory: "Công cụ",
   cooldowns: 0
